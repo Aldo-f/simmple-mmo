@@ -8,6 +8,8 @@
 // @match        http://web.simple-mmo.com/travel
 // @match        https://web.simple-mmo.com/jobs/view/*
 // @match        http://web.simple-mmo.com/jobs/view/*
+// @match        https://web.simple-mmo.com/battlearena
+// @match        http://web.simple-mmo.com/battlearena
 // @match        https://web.simple-mmo.com/npcs/attack/*
 // @match        http://web.simple-mmo.com/npcs/attack/*
 // ==/UserScript==
@@ -23,7 +25,8 @@ gBtn = {
     'enemy': "#enemyBox .kt-widget25__item",
     'job': "body > div:nth-child(3) > main > div.container-two a.btn.btn-success",
     'step': "#travel button.btn.btn-primary.stepbuttonnew",
-    'jobConfirm': "body > div.swal2-container.swal2-center.swal2-shown div.swal2-actions > button.swal2-confirm.swal2-styled"
+    'jobConfirm': "body > div.swal2-container.swal2-center.swal2-shown div.swal2-actions > button.swal2-confirm.swal2-styled",
+    'modelConfirm': "body > div.swal2-container div.swal2-actions > button.swal2-confirm",
 };
 
 // on all pages
@@ -32,10 +35,11 @@ gBtn = {
     let rand = getRandom()
     console.log(rand)
     setTimeout(function () {
-        if (autoClick())
-            if (doJob())
-                if (doAttack())
-                    if (loop());
+        autoClick()
+        doJob()
+        generateEnemy()
+        doAttack()
+        loop()
     }, rand)
 }())
 
@@ -63,11 +67,33 @@ function doJob() {
     return 1
 }
 
+function generateEnemy() {
+    let btn_generate = "body main > div.container-two  div.kt-callout__action > button"
+
+    console.log('generateEnemy');
+    if ($(btn_generate).length > 0) {
+        $(btn_generate).trigger('click')
+
+        let btn_modal = gBtn.modelConfirm
+        if ($(btn_modal).length > 0) {
+            $(btn_modal).trigger('click')
+
+            if ($(btn_modal).length > 0) {
+                $(btn_modal).trigger('click')
+                setTimeout(e => { }, 5000)
+            }
+
+        }
+    }
+}
+
 function doAttack() {
     console.log("doAttack")
     let uri = "https://web.simple-mmo.com/npcs/attack/*"
     let special_btn = "#attackButton_special"
     let btn = "#attackButton"
+
+    checkEndBattle()
 
     let enemy = checkHp(gBtn.enemy)
     let me = checkHp(gBtn.me)
@@ -87,10 +113,39 @@ function doAttack() {
         console.log("not possible to attack")
     }
 
+
     if (attack_btn) {
         $(attack_btn).trigger("click")
     }
+
     return 1
+}
+
+function checkEndBattle() {
+    console.log('checkEndBattle')
+
+    let btn_modal = gBtn.modelConfirm
+    let btn_exit = ".kt-container a.btn.btn-danger"
+
+    setTimeout(e => { }, 1000)
+    if ($(btn_modal).length > 0) {
+        window.location = 'https://web.simple-mmo.com/battlearena';
+        // $(btn_modal).trigger("click")
+
+        // if ($(btn_exit).length > 0) {
+
+        //     $(btn_exit).trigger("click")
+        //     return true;
+
+        // } else {
+        //     console.log('Weird, you should have found that btn...');
+        // }
+
+    } else {
+        // not end of battle
+        console.log('not end of battle');
+        return false
+    };
 }
 
 function checkHp(target) {
